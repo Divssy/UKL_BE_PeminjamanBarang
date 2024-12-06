@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  user_role     UserRole
+  user_email    String         @unique
+  user_password String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+  borrowRecords BorrowRecord[]
+  ReturnRecord  ReturnRecord[]
+}
+
+model Items {
+  id            Int            @id @default(autoincrement())
+  name          String
+  category      String
+  location      String
+  qty           Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+  borrowRecords BorrowRecord[]
+  ReturnRecord  ReturnRecord[]
+}
+
+model BorrowRecord {
+  borrow_id    Int           @id @default(autoincrement())
+  user_id      Int
+  item_id      Int
+  borrow_date  DateTime
+  return_date  DateTime
+  ReturnRecord ReturnRecord?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  user         User          @relation(fields: [user_id], references: [id])
+  item         Items         @relation(fields: [item_id], references: [id])
+}
+
+model ReturnRecord {
+  return_id          Int          @id @default(autoincrement())
+  borrow_id          Int          @unique
+  user_id            Int
+  item_id            Int
+  actual_return_date DateTime
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @default(now()) @updatedAt
+  BorrowRecord       BorrowRecord @relation(fields: [borrow_id], references: [borrow_id])
+  user               User         @relation(fields: [user_id], references: [id])
+  item               Items        @relation(fields: [item_id], references: [id])
+}
+
+enum UserRole {
+  Admin
+  Member
+}
